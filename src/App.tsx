@@ -160,6 +160,7 @@ function App() {
     }
 
     setRecipientAddress(null);
+    setRecipientHLName(null);
     setPageState(PageState.MAIN);
     setNextPageState({ state: null, nextState: null });
     setIsReturnDialogOpen(false);
@@ -185,18 +186,8 @@ function App() {
   }, [nextPageState]);
 
   const getMachineState = useCallback(async () => {
-    if (!recipientAddress) {
-      const resp = await fetch(`${ATM_BACKEND_URL}/stats`).then((x) => x.json());
-      setMachineState(resp as MachineState);
-      return;
-    }
-
-    const resp = await fetch(`${ATM_BACKEND_URL}/stats?address=${recipientAddress}`).then((x) => x.json());
+    const resp = await fetch(`${ATM_BACKEND_URL}/stats`).then((x) => x.json());
     setMachineState(resp as MachineState);
-
-    if (resp.resolvedHypeName) {
-      setRecipientHLName(resp.resolvedHypeName);
-    }
   }, [recipientAddress]);
 
   const getFobUserStats = useCallback(async () => {
@@ -314,23 +305,20 @@ function App() {
   }, [keyFobId, getFobUserStats]);
 
   const onAddressScanned = useCallback(async (address: string) => {
-    setQrCodeData(address);
 
     // If this is Hype transaction, resolve HL Name (Primary Name)
     if (nextPageState?.data?.chain?.name === "Hype") {
       try {
-        const statsData = await fetch(`${ATM_BACKEND_URL}/stats`).then(x => x.json());
-        if (statsData.resolveHypeName) {
-          const hlName = await statsData.resolveHypeName(address);
-          setRecipientHLName(hlName);
+        const resp = await fetch(`${ATM_BACKEND_URL}/stats?address=${address}`).then((x) => x.json());
+
+        if (resp.resolvedHypeName) {
+          setRecipientHLName(resp.resolvedHypeName);
         }
       } catch (error) {
         console.error("Error resolving HL name:", error);
       }
     }
 
-    setNextPageState({ state: PageState.BUYING_HYPE_INSERT_BILL, data: nextPageState.data });
-    setIsConfirmAddressDialogOpen(true);
   }, [nextPageState]);
 
   useEffect(() => {
@@ -355,13 +343,6 @@ function App() {
     getMachineState();
     setInterval(getMachineState, 2500);
   }, [getMachineState, machineState]);
-
-  useEffect(() => {
-    // Reset HL name when dialog closes
-    if (!isConfirmAddressDialogOpen) {
-      setRecipientHLName(null);
-    }
-  }, [isConfirmAddressDialogOpen]);
 
   return (
     <>
@@ -885,8 +866,8 @@ function App() {
                         nextState: PageState.BUYING_HYPE_SENDING_TX,
                         data: nextPageState.data
                       })
-                      setIsConfirmAddressDialogOpen(true);
                       onAddressScanned(txt);
+                      setIsConfirmAddressDialogOpen(true);
                     }
                   }
 
@@ -990,6 +971,11 @@ function App() {
               Recipient address: {recipientAddress || "--"}
             </Typography>
 
+            {recipientHLName && (
+              <Typography variant="subtitle1">
+                Recipient HL Name: {recipientHLName}
+              </Typography>
+            )}
             <div style={{ marginTop: "15px" }} />
 
             <Typography variant="h5">
@@ -1172,6 +1158,11 @@ function App() {
                 ? prettyNumbers(finishDepositResp.totalCryptoToRecv)
                 : "--"}
             </Typography>
+            {finishDepositResp?.recipientPrimaryName && (
+              <Typography variant="subtitle1">
+                Recipient HL Name: {finishDepositResp.recipientPrimaryName}
+              </Typography>)
+            }
             {finishDepositResp?.explorerTx && (
               <QRCode
                 value={finishDepositResp.explorerTx}
