@@ -956,26 +956,30 @@ function App() {
         {pageState === PageState.BUYING_HYPE_INSERT_BILL && (
           <>
 
-            <Typography variant="h5" color="primary" fontWeight="bold"
+            <div style={{ marginTop: "15px" }} />
+
+            {recipientHLName && (
+              <Typography variant="h5">
+                Primary HL Name: {recipientHLName}
+              </Typography>
+            )}
+
+            <Typography variant="h5">
+              Recipient Address: {recipientAddress || "--"}
+            </Typography>
+
+
+            <Typography color="primary" fontWeight="bold"
               sx={{ backgroundColor: 'rgba(255, 60, 0, 0.1)', padding: '10px', borderRadius: '5px' }}
             >
               HYPE L1 may charge a 1 USD fee when depositing to new accounts.
             </Typography>
 
-            <div style={{ marginTop: "15px" }} />
-            <Typography variant="h5">
+            <Typography>
 
               FEED CAD BILLS INTO MACHINE
             </Typography>
-            <Typography variant="subtitle1">
-              Recipient address: {recipientAddress || "--"}
-            </Typography>
 
-            {recipientHLName && (
-              <Typography variant="subtitle1">
-                Recipient HL Name: {recipientHLName}
-              </Typography>
-            )}
             <div style={{ marginTop: "15px" }} />
 
             <Typography variant="h5">
