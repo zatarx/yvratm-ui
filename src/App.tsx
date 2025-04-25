@@ -188,7 +188,7 @@ function App() {
   const getMachineState = useCallback(async () => {
     const resp = await fetch(`${ATM_BACKEND_URL}/stats`).then((x) => x.json());
     setMachineState(resp as MachineState);
-  }, [recipientAddress]);
+  }, []);
 
   const getFobUserStats = useCallback(async () => {
     const resp = await fetch(
